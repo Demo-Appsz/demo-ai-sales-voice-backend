@@ -1,3 +1,4 @@
+use std::time::Duration;
 use async_trait::async_trait;
 use serde::Deserialize;
 
@@ -22,8 +23,14 @@ struct SignedUrlApiResponse {
 
 impl ElevenLabsAgentGateway {
     pub fn new(api_key: String, agent_id: String) -> Self {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(8))
+            .pool_max_idle_per_host(32)
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+
         Self {
-            client: reqwest::Client::new(),
+            client,
             api_key,
             agent_id,
         }

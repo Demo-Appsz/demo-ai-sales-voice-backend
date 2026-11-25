@@ -206,3 +206,89 @@ async fn test_call_lifecycle_regression_and_not_found() {
         .unwrap();
     assert_eq!(missing_res.status(), StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn test_high_concurrency_multi_user_sessions() {
+    let app = build_test_app(false);
+    let mut handles = Vec::with_capacity(50);
+
+    for idx in 0..50 {
+        let router = app.clone();
+        handles.push(tokio::spawn(async move {
+            let gender = if idx % 2 == 0 { "female" } else { "male" };
+
+            let sess_res = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/api/agent/session")
+                        .header("content-type", "application/json")
+                        .body(Body::from(json!({ "voiceGender": gender }).to_string()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(sess_res.status(), StatusCode::OK);
+            let sess_json = read_json(sess_res).await;
+            let expected_agent = if idx % 2 == 0 { "Jasmin" } else { "Mas Rouf" };
+            assert_eq!(sess_json["voiceConfig"]["agentName"], expected_agent);
+
+            let start_res = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/api/call/start")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(start_res.status(), StatusCode::OK);
+            let start_json = read_json(start_res).await;
+            let call_id = start_json["callDetails"]["callId"]
+                .as_str()
+                .unwrap()
+                .to_string();
+
+            let msg = format!("Pesan unik pengguna {}", idx);
+            let chat_res = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri(format!("/api/call/{}/chat", call_id))
+                        .header("content-type", "application/json")
+                        .body(Body::from(json!({ "message": msg }).to_string()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(chat_res.status(), StatusCode::OK);
+            let chat_json = read_json(chat_res).await;
+            assert!(chat_json["reply"].as_str().unwrap().contains(&msg));
+
+            let end_res = router
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri(format!("/api/call/{}/end", call_id))
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(end_res.status(), StatusCode::OK);
+
+            call_id
+        }));
+    }
+
+    let mut call_ids = std::collections::HashSet::new();
+    for handle in handles {
+        let id = handle.await.unwrap();
+        assert!(call_ids.insert(id), "Duplicate SessionId generated under concurrency");
+    }
+    assert_eq!(call_ids.len(), 50);
+}
