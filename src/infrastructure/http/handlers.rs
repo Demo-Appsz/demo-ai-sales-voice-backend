@@ -24,7 +24,37 @@ pub async fn health_check() -> impl IntoResponse {
     }))
 }
 
-pub async fn create_agent_session(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+#[derive(serde::Deserialize, Default)]
+pub struct AgentSessionRequestDto {
+    #[serde(rename = "voiceGender")]
+    pub voice_gender: Option<String>,
+}
+
+pub async fn create_agent_session(
+    State(state): State<Arc<AppState>>,
+    payload: Option<Json<AgentSessionRequestDto>>,
+) -> impl IntoResponse {
+    let gender = payload
+        .and_then(|p| p.0.voice_gender)
+        .filter(|g| g == "male" || g == "female")
+        .unwrap_or_else(|| "female".to_string());
+
+    let voice_config = if gender == "male" {
+        json!({
+            "voiceId": "5U7QzveIXT8fIoBXaoUC",
+            "stability": 0.38,
+            "speed": 1.05,
+            "similarityBoost": 0.78
+        })
+    } else {
+        json!({
+            "voiceId": "qXOoUJU1h7AiwSe4ltRA",
+            "stability": 0.35,
+            "speed": 1.07,
+            "similarityBoost": 0.78
+        })
+    };
+
     match state.call_service.create_agent_session().await {
         Ok(token) => (
             StatusCode::OK,
@@ -33,7 +63,9 @@ pub async fn create_agent_session(State(state): State<Arc<AppState>>) -> impl In
                 "connectionType": token.connection_type,
                 "conversationToken": token.conversation_token,
                 "conversationId": token.conversation_id,
-                "signedUrl": token.signed_url
+                "signedUrl": token.signed_url,
+                "voiceGender": gender,
+                "voiceConfig": voice_config
             })),
         )
             .into_response(),
