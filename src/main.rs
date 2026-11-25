@@ -1,18 +1,14 @@
-mod application;
-mod domain;
-mod infrastructure;
-
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::application::use_cases::CallService;
-use crate::infrastructure::adapters::{
+use backend::application::use_cases::CallService;
+use backend::infrastructure::adapters::{
     elevenlabs_gateway::ElevenLabsAgentGateway,
     in_memory_repository::InMemorySessionRepository,
 };
-use crate::infrastructure::http::handlers::AppState;
-use crate::infrastructure::http::routes::create_router;
+use backend::infrastructure::http::handlers::AppState;
+use backend::infrastructure::http::routes::create_router;
 
 #[tokio::main]
 async fn main() {
