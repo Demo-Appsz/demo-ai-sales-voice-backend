@@ -1,16 +1,21 @@
 use std::sync::Arc;
 use crate::domain::entities::CallSession;
-use crate::domain::ports::SessionRepository;
+use crate::domain::ports::{AgentSessionToken, SessionRepository, VoiceAgentGateway};
 use crate::domain::value_objects::{SessionId, Speaker};
 use super::dtos::{CallDetailsDto, ChatResponseDto, EndCallResponseDto, StartCallResponseDto};
 
 pub struct CallService {
     repo: Arc<dyn SessionRepository>,
+    voice_gateway: Arc<dyn VoiceAgentGateway>,
 }
 
 impl CallService {
-    pub fn new(repo: Arc<dyn SessionRepository>) -> Self {
-        Self { repo }
+    pub fn new(repo: Arc<dyn SessionRepository>, voice_gateway: Arc<dyn VoiceAgentGateway>) -> Self {
+        Self { repo, voice_gateway }
+    }
+
+    pub async fn create_agent_session(&self) -> Result<AgentSessionToken, String> {
+        self.voice_gateway.create_session_token().await
     }
 
     pub async fn start_call(&self) -> Result<StartCallResponseDto, String> {
@@ -107,12 +112,32 @@ impl CallService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
     use crate::infrastructure::adapters::in_memory_repository::InMemorySessionRepository;
+
+    struct MockVoiceGateway;
+
+    #[async_trait]
+    impl VoiceAgentGateway for MockVoiceGateway {
+        async fn create_session_token(&self) -> Result<AgentSessionToken, String> {
+            Ok(AgentSessionToken {
+                connection_type: "webrtc".to_string(),
+                conversation_token: Some("mock-token-123".to_string()),
+                conversation_id: Some("conv_mock_123".to_string()),
+                signed_url: None,
+            })
+        }
+    }
 
     #[tokio::test]
     async fn test_start_and_end_call_flow() {
         let repo = Arc::new(InMemorySessionRepository::new());
-        let service = CallService::new(repo);
+        let gateway = Arc::new(MockVoiceGateway);
+        let service = CallService::new(repo, gateway);
+
+        let token_res = service.create_agent_session().await.unwrap();
+        assert_eq!(token_res.connection_type, "webrtc");
+        assert_eq!(token_res.conversation_token.as_deref(), Some("mock-token-123"));
 
         let start_res = service.start_call().await.unwrap();
         assert!(start_res.success);

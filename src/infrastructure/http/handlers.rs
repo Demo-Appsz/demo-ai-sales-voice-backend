@@ -20,8 +20,29 @@ pub async fn health_check() -> impl IntoResponse {
     Json(json!({
         "status": "ok",
         "service": "ai-sales-customer-service",
-        "version": "1.0.0"
+        "version": "2.0.0"
     }))
+}
+
+pub async fn create_agent_session(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.call_service.create_agent_session().await {
+        Ok(token) => (
+            StatusCode::OK,
+            Json(json!({
+                "success": true,
+                "connectionType": token.connection_type,
+                "conversationToken": token.conversation_token,
+                "conversationId": token.conversation_id,
+                "signedUrl": token.signed_url
+            })),
+        )
+            .into_response(),
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "success": false, "error": err })),
+        )
+            .into_response(),
+    }
 }
 
 pub async fn start_call(State(state): State<Arc<AppState>>) -> impl IntoResponse {

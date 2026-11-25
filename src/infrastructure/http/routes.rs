@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
 use super::handlers::{
-    end_call, get_session, health_check, process_chat, start_call, AppState,
+    create_agent_session, end_call, get_session, health_check, process_chat, start_call, AppState,
 };
 
 pub fn create_router(state: Arc<AppState>) -> Router {
@@ -17,6 +17,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
 
     Router::new()
         .route("/api/health", get(health_check))
+        .route("/api/agent/session", get(create_agent_session).post(create_agent_session))
         .route("/api/call/start", post(start_call))
         .route("/api/call/{id}/end", post(end_call))
         .route("/api/call/{id}/chat", post(process_chat))

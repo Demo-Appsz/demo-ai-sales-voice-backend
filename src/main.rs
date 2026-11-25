@@ -7,12 +7,18 @@ use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::application::use_cases::CallService;
-use crate::infrastructure::adapters::in_memory_repository::InMemorySessionRepository;
+use crate::infrastructure::adapters::{
+    elevenlabs_gateway::ElevenLabsAgentGateway,
+    in_memory_repository::InMemorySessionRepository,
+};
 use crate::infrastructure::http::handlers::AppState;
 use crate::infrastructure::http::routes::create_router;
 
 #[tokio::main]
 async fn main() {
+    let _ = dotenvy::from_filename(".env.local");
+    let _ = dotenvy::from_filename("../.env.local");
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -21,8 +27,12 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    let api_key = std::env::var("ELEVENLABS_API_KEY").unwrap_or_default();
+    let agent_id = std::env::var("ELEVENLABS_AGENT_ID").unwrap_or_default();
+
     let repo = Arc::new(InMemorySessionRepository::new());
-    let call_service = Arc::new(CallService::new(repo));
+    let voice_gateway = Arc::new(ElevenLabsAgentGateway::new(api_key, agent_id));
+    let call_service = Arc::new(CallService::new(repo, voice_gateway));
     let state = Arc::new(AppState { call_service });
 
     let app = create_router(state);
