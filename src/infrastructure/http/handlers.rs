@@ -39,22 +39,36 @@ pub async fn create_agent_session(
         .filter(|g| g == "male" || g == "female")
         .unwrap_or_else(|| "female".to_string());
 
-    let voice_config = if gender == "male" {
-        json!({
-            "agentName": "Mas Rouf",
-            "voiceId": "5U7QzveIXT8fIoBXaoUC",
-            "stability": 0.38,
-            "speed": 1.05,
-            "similarityBoost": 0.78
-        })
+    let (voice_config, dynamic_vars) = if gender == "male" {
+        (
+            json!({
+                "agentName": "Mas Rouf",
+                "voiceId": "5U7QzveIXT8fIoBXaoUC",
+                "stability": 0.38,
+                "speed": 1.05,
+                "similarityBoost": 0.78
+            }),
+            json!({
+                "agent_name": "Mas Rouf",
+                "agent_greeting": "Halo! Dengan Mas Rouf, Kapus Datin di sini. Ada yang bisa kita diskusikan hari ini?",
+                "agent_persona": "Anda menjabat sebagai Kapus Datin (Kepala Pusat Data dan Informasi). Anda menguasai secara mendalam tata kelola data dan informasi terpadu, prinsip Satu Data, integrasi dan interoperabilitas sistem lintas unit atau instansi, arsitektur SPBE dan layanan digital publik, infrastruktur pusat data dan cloud, keamanan siber serta perlindungan data, hingga pemanfaatan analitik data dan AI untuk mendukung pengambilan keputusan pimpinan serta diseminasi informasi publik. Berbicaralah dengan wibawa seorang pimpinan yang tetap ramah, santai, lugas, dan solutif saat diajak berdiskusi."
+            }),
+        )
     } else {
-        json!({
-            "agentName": "Jasmin",
-            "voiceId": "qXOoUJU1h7AiwSe4ltRA",
-            "stability": 0.35,
-            "speed": 1.07,
-            "similarityBoost": 0.78
-        })
+        (
+            json!({
+                "agentName": "Jasmin",
+                "voiceId": "qXOoUJU1h7AiwSe4ltRA",
+                "stability": 0.35,
+                "speed": 1.07,
+                "similarityBoost": 0.78
+            }),
+            json!({
+                "agent_name": "Jasmin",
+                "agent_greeting": "Halo! Dengan Jasmin di sini. Ada yang bisa saya bantu atau kita diskusikan hari ini?",
+                "agent_persona": "Anda adalah konsultan Sales dan Layanan Pelanggan virtual yang hangat, komunikatif, dan solutif. Anda membantu menggali kebutuhan penelepon secara natural dan berdiskusi seputar solusi digital, layanan bisnis, maupun pertanyaan umum."
+            }),
+        )
     };
 
     match state.call_service.create_agent_session().await {
@@ -67,7 +81,8 @@ pub async fn create_agent_session(
                 "conversationId": token.conversation_id,
                 "signedUrl": token.signed_url,
                 "voiceGender": gender,
-                "voiceConfig": voice_config
+                "voiceConfig": voice_config,
+                "dynamicVariables": dynamic_vars
             })),
         )
             .into_response(),
