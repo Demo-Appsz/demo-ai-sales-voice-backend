@@ -41,6 +41,7 @@ pub async fn create_agent_session(
 
     let voice_config = if gender == "male" {
         json!({
+            "agentName": "Mas Rouf",
             "voiceId": "5U7QzveIXT8fIoBXaoUC",
             "stability": 0.38,
             "speed": 1.05,
@@ -48,6 +49,7 @@ pub async fn create_agent_session(
         })
     } else {
         json!({
+            "agentName": "Jasmin",
             "voiceId": "qXOoUJU1h7AiwSe4ltRA",
             "stability": 0.35,
             "speed": 1.07,
