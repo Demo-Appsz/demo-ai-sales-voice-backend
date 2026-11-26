@@ -93,7 +93,7 @@ async fn test_agent_session_returns_both_jasmin_and_mas_rouf_voices() {
     assert_eq!(body_male["success"], true);
     assert_eq!(body_male["voiceGender"], "male");
     assert_eq!(body_male["voiceConfig"]["agentName"], "Mas Rouf");
-    assert_eq!(body_male["voiceConfig"]["voiceId"], "5U7QzveIXT8fIoBXaoUC");
+    assert_eq!(body_male["voiceConfig"]["voiceId"], "zmqLb9Ysr8fUvDD7hXK8");
     assert_eq!(body_male["dynamicVariables"]["agent_name"], "Mas Rouf");
     assert!(
         body_male["dynamicVariables"]["agent_persona"]

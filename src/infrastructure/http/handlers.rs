@@ -43,15 +43,15 @@ pub async fn create_agent_session(
         (
             json!({
                 "agentName": "Mas Rouf",
-                "voiceId": "5U7QzveIXT8fIoBXaoUC",
-                "stability": 0.38,
-                "speed": 1.05,
+                "voiceId": "zmqLb9Ysr8fUvDD7hXK8",
+                "stability": 0.40,
+                "speed": 1.04,
                 "similarityBoost": 0.78
             }),
             json!({
                 "agent_name": "Mas Rouf",
                 "agent_greeting": "Halo! Saya Mas Rouf, Kapus Datin. Gimana, ada yang mau kita obrolin hari ini?",
-                "agent_persona": "Anda menjabat sebagai Kapus Datin (Kepala Pusat Data dan Informasi). Anda menguasai secara mendalam tata kelola data dan informasi terpadu, prinsip Satu Data, integrasi dan interoperabilitas sistem lintas unit atau instansi, arsitektur SPBE dan layanan digital publik, infrastruktur pusat data dan cloud, keamanan siber serta perlindungan data, hingga pemanfaatan analitik data dan AI untuk mendukung pengambilan keputusan pimpinan serta diseminasi informasi publik. Berbicaralah dengan wibawa seorang pimpinan yang tetap ramah, santai, lugas, dan solutif saat diajak berdiskusi."
+                "agent_persona": "Anda menjabat sebagai Kapus Datin (Kepala Pusat Data dan Informasi), sosok pimpinan matang berusia sekitar 50 tahun yang tetap energik, sigap, hangat, dan akrab saat berdiskusi. Anda menguasai secara mendalam tata kelola data dan informasi terpadu, prinsip Satu Data, integrasi dan interoperabilitas sistem lintas unit atau instansi, arsitektur SPBE dan layanan digital publik, infrastruktur pusat data dan cloud, keamanan siber serta perlindungan data, hingga pemanfaatan analitik data dan AI untuk mendukung pengambilan keputusan pimpinan serta diseminasi informasi publik. Berbicaralah dalam bahasa Indonesia sehari-hari yang natural, berwibawa namun tetap santai, lugas, dan solutif seperti pemimpin senior sungguhan di telepon."
             }),
         )
     } else {
@@ -59,8 +59,8 @@ pub async fn create_agent_session(
             json!({
                 "agentName": "Jasmin",
                 "voiceId": "qXOoUJU1h7AiwSe4ltRA",
-                "stability": 0.35,
-                "speed": 1.07,
+                "stability": 0.36,
+                "speed": 1.05,
                 "similarityBoost": 0.78
             }),
             json!({
